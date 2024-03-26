@@ -1,7 +1,7 @@
 const path = require('path')
 const TerserPlugin = require('terser-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin')
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
 
 module.exports = {
   mode: 'development',
@@ -9,12 +9,17 @@ module.exports = {
   entry: [
     './src/index.js'
   ],
+  devServer: {
+    static: {
+      directory: __dirname
+    },
+    port: 8080
+  },
   output: {
     library: 'printJS',
     libraryTarget: 'umd',
     path: path.resolve(__dirname, 'dist'),
     filename: 'print.js',
-    sourceMapFilename: 'print.map',
     libraryExport: 'default'
   },
   module: {
@@ -26,37 +31,12 @@ module.exports = {
           loader: 'babel-loader'
         }
       },
-      // TODO: Configure istanbul to interpret how webpack bundles files
-      // {
-      //   test: /\.js$/,
-      //   use: {
-      //     loader: 'istanbul-instrumenter-loader',
-      //     options: { esModules: true }
-      //   },
-      //   enforce: 'post',
-      //   exclude: /node_modules|\.spec\.js$/
-      // },
       {
-        test: /\.scss$/,
+        test: /.s?css$/,
         use: [
-          {
-            loader: MiniCssExtractPlugin.loader,
-            options: {
-              sourceMap: true
-            }
-          },
-          {
-            loader: 'css-loader',
-            options: {
-              sourceMap: true
-            }
-          },
-          {
-            loader: 'sass-loader',
-            options: {
-              sourceMap: true
-            }
-          }
+          MiniCssExtractPlugin.loader,
+          { loader: 'css-loader', options: { sourceMap: true } },
+          { loader: 'sass-loader', options: { sourceMap: true } }
         ]
       }
     ]
@@ -68,20 +48,17 @@ module.exports = {
   ],
   optimization: {
     minimizer: [
-      new OptimizeCssAssetsPlugin({
-        assetNameRegExp: /\.css$/g,
-        canPrint: false
-      }),
-      new TerserPlugin({
-        cache: false,
-        parallel: true,
-        sourceMap: true, // Must be set to true if using source-maps in production
-        terserOptions: {
-          mangle: true,
-          ie8: true,
-          safari10: true
-        }
-      })
+      new CssMinimizerPlugin(),
+      (compiler) => {
+        new TerserPlugin({
+          parallel: true,
+          terserOptions: {
+            mangle: true,
+            ie8: true,
+            safari10: true
+          }
+        }).apply(compiler)
+      }
     ]
   }
 }
