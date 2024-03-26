@@ -70,7 +70,7 @@ export default {
         params.printable = args.printable
         params.fallbackPrintable = typeof args.fallbackPrintable !== 'undefined' ? args.fallbackPrintable : params.printable
         params.fallbackPrintable = params.base64 ? `data:application/pdf;base64,${params.fallbackPrintable}` : params.fallbackPrintable
-        for (var k in params) {
+        for (const k in params) {
           if (k === 'printable' || k === 'fallbackPrintable') continue
 
           params[k] = typeof args[k] !== 'undefined' ? args[k] : params[k]
